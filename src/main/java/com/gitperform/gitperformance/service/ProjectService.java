@@ -7,6 +7,7 @@ import com.gitperform.gitperformance.repository.ProjectRepository;
 import com.gitperform.gitperformance.repository.ProjectMemberRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -21,9 +22,9 @@ public class ProjectService {
     }
 
     public Project createProject(Project project, User owner) {
+        project.setCreatedAt(LocalDateTime.now());
         Project savedProject = projectRepository.save(project);
 
-        // Add owner as team lead
         ProjectMember ownerMember = new ProjectMember();
         ownerMember.setProject(savedProject);
         ownerMember.setUser(owner);
