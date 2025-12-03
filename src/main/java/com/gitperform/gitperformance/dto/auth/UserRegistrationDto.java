@@ -1,8 +1,9 @@
-package com.gitperform.gitperformance.dto;
+package com.gitperform.gitperformance.dto.auth;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 public class UserRegistrationDto {
@@ -10,6 +11,4 @@ public class UserRegistrationDto {
     private String email;
     private String password;
     private String displayName;
-
-    // constructors, getters, setters
 }

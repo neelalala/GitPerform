@@ -1,8 +1,7 @@
 package com.gitperform.gitperformance.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 @Setter
 @Getter
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +19,6 @@ public class User {
     private String email;
     private String password;
     private String displayName;
-    private String profilePhoto;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    // constructors, getters, setters
 }

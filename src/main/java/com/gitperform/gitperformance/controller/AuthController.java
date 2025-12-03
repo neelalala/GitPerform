@@ -1,7 +1,6 @@
 package com.gitperform.gitperformance.controller;
 
-import com.gitperform.gitperformance.dto.UserRegistrationDto;
-import com.gitperform.gitperformance.dto.UserLoginDto;
+import com.gitperform.gitperformance.dto.auth.*;
 import com.gitperform.gitperformance.dto.ApiResponse;
 import com.gitperform.gitperformance.model.User;
 import com.gitperform.gitperformance.service.UserService;
@@ -22,19 +21,19 @@ public class AuthController {
             return new ApiResponse<>(false, "User already exists", null);
         }
 
-        User user = new User();
+        var user = new User();
         user.setUsername(registrationDto.getUsername());
         user.setEmail(registrationDto.getEmail());
-        user.setPassword(registrationDto.getPassword()); // In real app, encrypt this
+        user.setPassword(registrationDto.getPassword()); // encrypt this
         user.setDisplayName(registrationDto.getDisplayName());
 
-        User savedUser = userService.createUser(user);
+        var savedUser = userService.createUser(user);
         return new ApiResponse<>(true, "Registration successful", savedUser);
     }
 
     @PostMapping("/login")
     public ApiResponse<User> login(@RequestBody UserLoginDto loginDto) {
-        User user = userService.validateUser(loginDto.getEmail(), loginDto.getPassword());
+        var user = userService.validateUser(loginDto.getEmail(), loginDto.getPassword());
         if (user != null) {
             return new ApiResponse<>(true, "Login successful", user);
         }

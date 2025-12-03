@@ -4,6 +4,8 @@ import com.gitperform.gitperformance.model.User;
 import com.gitperform.gitperformance.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -17,12 +19,19 @@ public class UserService {
     }
 
     public User createUser(User user) {
+        var now = LocalDateTime.now();
+        user.setCreatedAt(now);
+        user.setUpdatedAt(now);
         return userRepository.save(user);
     }
 
     public User validateUser(String email, String password) {
-        return userRepository.findByEmailAndPassword(email, password)
-                .orElse(null);
+        var user = userRepository.findByEmail(email).orElse(null);
+        if (user != null && password.equals(user.getPassword())) {
+            return user;
+        } else {
+            return null;
+        }
     }
 
     public User findById(Long id) {
