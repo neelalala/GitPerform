@@ -1,7 +1,7 @@
 package com.gitperform.gitperformance.controller;
 
 import com.gitperform.gitperformance.dto.ApiResponse;
-import com.gitperform.gitperformance.model.Project;
+import com.gitperform.gitperformance.dto.project.ProjectDto;
 import com.gitperform.gitperformance.service.ProjectService;
 import com.gitperform.gitperformance.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -20,20 +20,20 @@ public class ProjectController {
     }
 
     @PostMapping("/new")
-    public ApiResponse<Project> createProject(@RequestBody Project project,
-                                              @RequestParam Long userId) {
+    public ApiResponse<ProjectDto> createProject(@RequestBody com.gitperform.gitperformance.model.Project project,
+                                                 @RequestParam Long userId) {
         var user = userService.findById(userId);
         if (user == null) {
             return new ApiResponse<>(false, "User not found", null);
         }
 
         var createdProject = projectService.createProject(project, user);
-        return new ApiResponse<>(true, "Project created successfully", createdProject);
+        return new ApiResponse<>(true, "Project created successfully", new ProjectDto(createdProject));
     }
 
     @GetMapping("/user/{userId}")
-    public ApiResponse<List<Project>> getUserProjects(@PathVariable Long userId) {
-        var projects = projectService.getUserProjects(userId);
+    public ApiResponse<List<ProjectDto>> getUserProjects(@PathVariable Long userId) {
+        var projects = projectService.getUserProjects(userId).stream().map(ProjectDto::new).toList();
         return new ApiResponse<>(true, "Projects retrieved successfully", projects);
     }
 

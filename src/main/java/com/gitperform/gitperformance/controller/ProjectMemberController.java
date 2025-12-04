@@ -1,7 +1,7 @@
 package com.gitperform.gitperformance.controller;
 
 import com.gitperform.gitperformance.dto.ApiResponse;
-import com.gitperform.gitperformance.model.ProjectMember;
+import com.gitperform.gitperformance.dto.project.ProjectMemberDto;
 import com.gitperform.gitperformance.service.ProjectService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +17,8 @@ public class ProjectMemberController {
     }
 
     @GetMapping
-    public ApiResponse<List<ProjectMember>> getProjectMembers(@PathVariable Long projectId) {
-        List<ProjectMember> members = projectService.getProjectMembers(projectId);
+    public ApiResponse<List<ProjectMemberDto>> getProjectMembers(@PathVariable Long projectId) {
+        var members = projectService.getProjectMembers(projectId).stream().map(ProjectMemberDto::new).toList();
         return new ApiResponse<>(true, "Project members retrieved", members);
     }
 

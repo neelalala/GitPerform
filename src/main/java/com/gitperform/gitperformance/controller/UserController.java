@@ -3,7 +3,7 @@ package com.gitperform.gitperformance.controller;
 import com.gitperform.gitperformance.dto.ApiResponse;
 import com.gitperform.gitperformance.dto.user.EmailChangeDto;
 import com.gitperform.gitperformance.dto.user.PasswordChangeDto;
-import com.gitperform.gitperformance.model.User;
+import com.gitperform.gitperformance.dto.user.UserDto;
 import com.gitperform.gitperformance.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +14,15 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("/{userId}")
+    public ApiResponse<UserDto> getUser(@PathVariable Long userId) {
+        var user = userService.findById(userId);
+        if (user == null) {
+            return new ApiResponse<>(false, "User not found", null);
+        }
+        return new ApiResponse<>(true, "User retrieved", new UserDto(user));
     }
 
     @PutMapping("/{userId}/password")
@@ -54,7 +63,6 @@ public class UserController {
         if (userService.userExists(emailChangeDto.getNewEmail())) {
             return new ApiResponse<>(false, "Email already exists", false);
         }
-
 
         user.setEmail(emailChangeDto.getNewEmail());
         userService.updateUser(user);
