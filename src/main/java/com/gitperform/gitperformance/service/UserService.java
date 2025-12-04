@@ -25,6 +25,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User updateUser(User user) {
+        var now = LocalDateTime.now();
+        user.setUpdatedAt(now);
+        return userRepository.save(user);
+    }
+
     public User validateUser(String email, String password) {
         var user = userRepository.findByEmail(email).orElse(null);
         if (user != null && password.equals(user.getPassword())) {
