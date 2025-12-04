@@ -2,7 +2,6 @@ package com.gitperform.gitperformance.controller;
 
 import com.gitperform.gitperformance.dto.ApiResponse;
 import com.gitperform.gitperformance.model.Project;
-import com.gitperform.gitperformance.model.User;
 import com.gitperform.gitperformance.service.ProjectService;
 import com.gitperform.gitperformance.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -20,28 +19,28 @@ public class ProjectController {
         this.userService = userService;
     }
 
-    @PostMapping
+    @PostMapping("/new")
     public ApiResponse<Project> createProject(@RequestBody Project project,
                                               @RequestParam Long userId) {
-        User user = userService.findById(userId);
+        var user = userService.findById(userId);
         if (user == null) {
             return new ApiResponse<>(false, "User not found", null);
         }
 
-        Project createdProject = projectService.createProject(project, user);
+        var createdProject = projectService.createProject(project, user);
         return new ApiResponse<>(true, "Project created successfully", createdProject);
     }
 
     @GetMapping("/user/{userId}")
     public ApiResponse<List<Project>> getUserProjects(@PathVariable Long userId) {
-        List<Project> projects = projectService.getUserProjects(userId);
+        var projects = projectService.getUserProjects(userId);
         return new ApiResponse<>(true, "Projects retrieved successfully", projects);
     }
 
     @PostMapping("/{projectId}/join")
     public ApiResponse<Boolean> joinProject(@PathVariable Long projectId,
                                             @RequestParam Long userId) {
-        User user = userService.findById(userId);
+        var user = userService.findById(userId);
         if (user == null) {
             return new ApiResponse<>(false, "User not found", false);
         }

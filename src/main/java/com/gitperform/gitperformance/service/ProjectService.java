@@ -42,4 +42,25 @@ public class ProjectService {
         // Implementation for joining project
         return true;
     }
+
+    public Project getProject(Long projectId) {
+        return projectRepository.findById(projectId).orElse(null);
+    }
+
+    public boolean deleteMember(Long projectId, Long userId) {
+        var member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
+        if (member == null) {
+            return false;
+        }
+        projectMemberRepository.deleteByProjectIdAndUserId(projectId, userId);
+        return true;
+    }
+
+    public List<ProjectMember> getProjectMembers(Long projectId) {
+        var project = projectRepository.findById(projectId).orElse(null);
+        if (project == null) {
+            return null;
+        }
+        return project.getMembers();
+    }
 }
