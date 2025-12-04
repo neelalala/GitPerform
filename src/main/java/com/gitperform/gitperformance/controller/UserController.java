@@ -30,19 +30,10 @@ public class UserController {
             @PathVariable Long userId,
             @RequestBody PasswordChangeDto passwordChangeDto) {
 
-        var user = userService.findById(userId);
-        if (user == null) {
-            return new ApiResponse<>(false, "User not found", false);
-        }
+        boolean success = userService.changePassword(userId, passwordChangeDto);
+        String message = success ? "Password changed successfully" : "Failed to change password";
 
-        if (!user.getPassword().equals(passwordChangeDto.getCurrentPassword())) {
-            return new ApiResponse<>(false, "Current password is incorrect", false);
-        }
-
-        user.setPassword(passwordChangeDto.getNewPassword());
-        userService.updateUser(user);
-
-        return new ApiResponse<>(true, "Password changed successfully", true);
+        return new ApiResponse<>(success, message, success);
     }
 
     @PutMapping("/{userId}/email")
@@ -50,23 +41,9 @@ public class UserController {
             @PathVariable Long userId,
             @RequestBody EmailChangeDto emailChangeDto) {
 
-        var user = userService.findById(userId);
+        boolean success = userService.changeEmail(userId, emailChangeDto);
+        String message = success ? "Email changed successfully" : "Failed to change email";
 
-        if (user == null) {
-            return new ApiResponse<>(false, "User not found", false);
-        }
-
-        if (!user.getPassword().equals(emailChangeDto.getCurrentPassword())) {
-            return new ApiResponse<>(false, "Current password is incorrect", false);
-        }
-
-        if (userService.userExists(emailChangeDto.getNewEmail())) {
-            return new ApiResponse<>(false, "Email already exists", false);
-        }
-
-        user.setEmail(emailChangeDto.getNewEmail());
-        userService.updateUser(user);
-
-        return new ApiResponse<>(true, "Email changed successfully", true);
+        return new ApiResponse<>(success, message, success);
     }
 }

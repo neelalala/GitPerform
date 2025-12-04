@@ -1,13 +1,13 @@
 package com.gitperform.gitperformance.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "project_members")
 @Setter
 @Getter
+@NoArgsConstructor
 public class ProjectMember {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +27,4 @@ public class ProjectMember {
     public enum ProjectRole {
         DEVELOPER, TEAM_LEAD
     }
-
-    // constructors, getters, setters
 }

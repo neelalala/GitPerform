@@ -5,6 +5,7 @@ import com.gitperform.gitperformance.model.ProjectMember;
 import com.gitperform.gitperformance.model.User;
 import com.gitperform.gitperformance.repository.ProjectRepository;
 import com.gitperform.gitperformance.repository.ProjectMemberRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -39,7 +40,22 @@ public class ProjectService {
     }
 
     public boolean joinProject(Long projectId, User user) {
-        // Implementation for joining project
+        var project = projectRepository.findById(projectId).orElse(null);
+        if (project == null) {
+            return false;
+        }
+
+        boolean alreadyMember = projectMemberRepository.existsByProjectIdAndUserId(projectId, user.getId());
+        if (alreadyMember) {
+            return false;
+        }
+
+        ProjectMember member = new ProjectMember();
+        member.setProject(project);
+        member.setUser(user);
+        member.setRole(ProjectMember.ProjectRole.DEVELOPER);
+        projectMemberRepository.save(member);
+
         return true;
     }
 
@@ -47,6 +63,7 @@ public class ProjectService {
         return projectRepository.findById(projectId).orElse(null);
     }
 
+    @Transactional
     public boolean deleteMember(Long projectId, Long userId) {
         var member = projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
         if (member == null) {

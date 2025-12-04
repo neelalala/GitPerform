@@ -1,8 +1,10 @@
 package com.gitperform.gitperformance.controller;
 
-import com.gitperform.gitperformance.dto.auth.*;
 import com.gitperform.gitperformance.dto.ApiResponse;
-import com.gitperform.gitperformance.model.User;
+import com.gitperform.gitperformance.dto.auth.AuthResponseDto;
+import com.gitperform.gitperformance.dto.auth.UserRegistrationDto;
+import com.gitperform.gitperformance.dto.auth.UserLoginDto;
+import com.gitperform.gitperformance.dto.user.UserDto;
 import com.gitperform.gitperformance.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,27 +18,38 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ApiResponse<User> register(@RequestBody UserRegistrationDto registrationDto) {
+    public ApiResponse<AuthResponseDto> register(@RequestBody UserRegistrationDto registrationDto) {
         if (userService.userExists(registrationDto.getEmail())) {
             return new ApiResponse<>(false, "User already exists", null);
         }
 
-        var user = new User();
-        user.setUsername(registrationDto.getUsername());
-        user.setEmail(registrationDto.getEmail());
-        user.setPassword(registrationDto.getPassword()); // encrypt this
-        user.setDisplayName(registrationDto.getDisplayName());
+        var user = userService.createUser(registrationDto);
 
-        var savedUser = userService.createUser(user);
-        return new ApiResponse<>(true, "Registration successful", savedUser);
+        if (user == null) {
+            return new ApiResponse<>(false, "Registration failed", null);
+        }
+
+        AuthResponseDto response = new AuthResponseDto(
+                new UserDto(user),
+                "Registration successful"
+        );
+
+        return new ApiResponse<>(true, "Registration successful", response);
     }
 
     @PostMapping("/login")
-    public ApiResponse<User> login(@RequestBody UserLoginDto loginDto) {
+    public ApiResponse<AuthResponseDto> login(@RequestBody UserLoginDto loginDto) {
         var user = userService.validateUser(loginDto.getEmail(), loginDto.getPassword());
-        if (user != null) {
-            return new ApiResponse<>(true, "Login successful", user);
+
+        if (user == null) {
+            return new ApiResponse<>(false, "Invalid credentials", null);
         }
-        return new ApiResponse<>(false, "Invalid credentials", null);
+
+        AuthResponseDto response = new AuthResponseDto(
+                new UserDto(user),
+                "Login successful"
+        );
+
+        return new ApiResponse<>(true, "Login successful", response);
     }
 }
