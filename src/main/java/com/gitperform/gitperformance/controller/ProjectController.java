@@ -1,6 +1,7 @@
 package com.gitperform.gitperformance.controller;
 
 import com.gitperform.gitperformance.dto.ApiResponse;
+import com.gitperform.gitperformance.dto.project.ProjectCreateDto;
 import com.gitperform.gitperformance.dto.project.ProjectDto;
 import com.gitperform.gitperformance.service.ProjectService;
 import com.gitperform.gitperformance.service.UserService;
@@ -20,7 +21,7 @@ public class ProjectController {
     }
 
     @PostMapping("/new")
-    public ApiResponse<ProjectDto> createProject(@RequestBody com.gitperform.gitperformance.model.Project project,
+    public ApiResponse<ProjectDto> createProject(@RequestBody ProjectCreateDto project,
                                                  @RequestParam Long userId) {
         var user = userService.findById(userId);
         if (user == null) {

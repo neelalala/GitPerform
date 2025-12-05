@@ -1,5 +1,6 @@
 package com.gitperform.gitperformance.service;
 
+import com.gitperform.gitperformance.dto.project.ProjectCreateDto;
 import com.gitperform.gitperformance.model.Project;
 import com.gitperform.gitperformance.model.ProjectMember;
 import com.gitperform.gitperformance.model.User;
@@ -8,7 +9,6 @@ import com.gitperform.gitperformance.repository.ProjectMemberRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,8 +22,9 @@ public class ProjectService {
         this.projectMemberRepository = projectMemberRepository;
     }
 
-    public Project createProject(Project project, User owner) {
-        project.setCreatedAt(LocalDateTime.now());
+    public Project createProject(ProjectCreateDto dto, User owner) {
+        var project = new Project(dto);
+        project.setOwner(owner);
         Project savedProject = projectRepository.save(project);
 
         ProjectMember ownerMember = new ProjectMember();

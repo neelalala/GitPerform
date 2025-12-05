@@ -1,5 +1,6 @@
 package com.gitperform.gitperformance.model;
 
+import com.gitperform.gitperformance.dto.project.ProjectCreateDto;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -30,4 +31,11 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<ProjectMember> members = new ArrayList<>();
+
+    public Project(ProjectCreateDto dto) {
+        name = dto.getName();
+        description = dto.getDescription();
+        githubUrl = dto.getGithubUrl();
+        createdAt = LocalDateTime.now();
+    }
 }
