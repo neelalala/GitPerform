@@ -19,6 +19,9 @@ public class Project {
     private String name;
     private String description;
 
+    @Column(name = "github_url")
+    private String githubUrl;
+
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private User owner;

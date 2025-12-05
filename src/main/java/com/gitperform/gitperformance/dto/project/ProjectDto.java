@@ -13,6 +13,7 @@ public class ProjectDto {
     private Long id;
     private String name;
     private String description;
+    private String githubUrl;
     private Long ownerId;
     private String ownerName;
     private LocalDateTime createdAt;
