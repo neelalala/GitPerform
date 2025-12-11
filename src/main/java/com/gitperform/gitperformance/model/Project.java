@@ -20,8 +20,14 @@ public class Project {
     private String name;
     private String description;
 
-    @Column(name = "github_url")
-    private String githubUrl;
+    @Column(name = "repo_url")
+    private String repoUrl;
+
+    @Column(name = "access_token")
+    private String token;
+
+    @Column(name = "is_public")
+    private boolean isPublic = true;
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
@@ -35,7 +41,7 @@ public class Project {
     public Project(ProjectCreateDto dto) {
         name = dto.getName();
         description = dto.getDescription();
-        githubUrl = dto.getGithubUrl();
+        repoUrl = dto.getRepoUrl();
         createdAt = LocalDateTime.now();
     }
 }

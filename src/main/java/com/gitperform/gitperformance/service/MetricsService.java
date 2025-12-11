@@ -2,69 +2,63 @@ package com.gitperform.gitperformance.service;
 
 import com.gitperform.gitperformance.dto.metrics.CommitDto;
 import com.gitperform.gitperformance.dto.metrics.RepoMetricsDto;
-import com.gitperform.gitperformance.model.GithubToken;
 import com.gitperform.gitperformance.model.Project;
-import com.gitperform.gitperformance.model.User;
-import com.gitperform.gitperformance.repository.GithubTokenRepository;
-import com.gitperform.gitperformance.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.kohsuke.github.*;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Slf4j
-@Service
 @RequiredArgsConstructor
+@Service
 public class MetricsService {
-    
-    private final GithubTokenRepository githubTokenRepository;
-    private final ProjectRepository projectRepository;
-    
-    public RepoMetricsDto analyzeRepository(Long projectId, String githubToken, Integer daysBack) {
+    private final ProjectService projectService;
+
+    public RepoMetricsDto analyzeRepository(Long projectId, Integer daysBack) {
         try {
-            Project project = projectRepository.findById(projectId)
-                    .orElseThrow(() -> new RuntimeException("Project not found"));
-            
-            // Предполагаем, что в проекте хранится URL репозитория GitHub
-            String repoUrl = project.getGithubUrl();
-            if (repoUrl == null || repoUrl.isEmpty()) {
-                throw new RuntimeException("GitHub URL not configured for this project");
+            Project project = projectService.getProject(projectId);
+            if (project == null) {
+                throw new RuntimeException("Project not found");
             }
-            
-            // Извлекаем owner и repoName из URL
+
+            String repoUrl = project.getRepoUrl();
+            if (repoUrl == null || repoUrl.isEmpty()) {
+                throw new RuntimeException("Repo URL not configured for this project");
+            }
+
             String[] parts = extractOwnerAndRepo(repoUrl);
-            String owner = parts[0];
-            String repoName = parts[1];
-            
-            return analyzeGitHubRepository(owner, repoName, githubToken, daysBack);
-            
+            return analyzeGitHubRepository(parts[0], parts[1], daysBack);
+
         } catch (Exception e) {
-            log.error("Error analyzing repository: {}", e.getMessage(), e);
-            throw new RuntimeException("Failed to analyze repository: " + e.getMessage());
+            throw new RuntimeException("Failed to analyze repository: " + e.getMessage(), e);
         }
     }
-    
-    public RepoMetricsDto analyzeGitHubRepository(String owner, String repoName, String accessToken, Integer daysBack) {
+
+    public RepoMetricsDto analyzeGitHubRepository(String owner, String repoName, Integer daysBack) {
         try {
-            GitHub github = new GitHubBuilder().withOAuthToken(accessToken).build();
+            GitHub github = new GitHubBuilder().build();
             GHRepository repository = github.getRepository(owner + "/" + repoName);
-            
+
+            if (repository.isPrivate()) {
+                throw new RuntimeException("Private repositories are not supported. Please use a public repository.");
+            }
+
             LocalDateTime sinceDate = null;
             if (daysBack != null && daysBack > 0) {
                 sinceDate = LocalDateTime.now().minusDays(daysBack);
             }
-            
             return collectMetrics(repository, sinceDate);
-            
+
         } catch (IOException e) {
-            log.error("Error accessing GitHub API: {}", e.getMessage(), e);
+            if (e.getMessage().contains("Not Found")) {
+                throw new RuntimeException("Repository not found or is private");
+            }
             throw new RuntimeException("GitHub API error: " + e.getMessage());
         }
     }
@@ -74,8 +68,7 @@ public class MetricsService {
         metrics.setRepoName(repository.getName());
         metrics.setOwner(repository.getOwnerName());
         metrics.setAnalysisDate(LocalDateTime.now());
-        
-        // Получаем коммиты
+
         List<CommitDto> commits = new ArrayList<>();
         Map<String, Integer> authorStats = new HashMap<>();
         Map<String, Integer> dayStats = new HashMap<>();
@@ -87,16 +80,14 @@ public class MetricsService {
         PagedIterable<GHCommit> ghCommits = repository.listCommits();
         for (GHCommit ghCommit : ghCommits) {
             CommitDto commitDto = convertToCommitDto(ghCommit);
-            
-            // Фильтрация по дате если нужно
+
             if (sinceDate != null && 
                 commitDto.getCommitDate().isBefore(sinceDate)) {
                 continue;
             }
             
             commits.add(commitDto);
-            
-            // Собираем статистику
+
             String author = commitDto.getAuthor();
             authorStats.put(author, authorStats.getOrDefault(author, 0) + 1);
             
@@ -106,8 +97,7 @@ public class MetricsService {
             totalAdditions += commitDto.getAdditions();
             totalDeletions += commitDto.getDeletions();
         }
-        
-        // Рассчитываем метрики
+
         metrics.setTotalCommits(commits.size());
         metrics.setTotalContributors(authorStats.size());
         metrics.setLinesAdded(totalAdditions);
@@ -120,15 +110,13 @@ public class MetricsService {
             .sorted((c1, c2) -> c2.getCommitDate().compareTo(c1.getCommitDate()))
             .limit(10)
             .collect(Collectors.toList()));
-        
-        // Находим самого активного автора
+
         String mostActiveAuthor = authorStats.entrySet().stream()
             .max(Map.Entry.comparingByValue())
             .map(Map.Entry::getKey)
             .orElse("No authors");
         metrics.setMostActiveAuthor(mostActiveAuthor);
-        
-        // Находим самый активный день
+
         int mostActiveDay = dayStats.values().stream()
             .max(Integer::compareTo)
             .orElse(0);
@@ -154,73 +142,41 @@ public class MetricsService {
             .atZone(ZoneId.systemDefault())
             .toLocalDateTime());
         dto.setMessage(ghCommit.getCommitShortInfo().getMessage());
-        
-        // Получаем статистику по файлам
+
         try {
-            
+
             List<GHCommit.File> files = ghCommit.listFiles().toList();
             int additions = 0;
             int deletions = 0;
             int total = 0;
-            
+
             for (GHCommit.File file : files) {
                 additions += file.getLinesAdded();
                 deletions += file.getLinesDeleted();
                 total += file.getLinesChanged();
             }
-            
+
             dto.setAdditions(additions);
             dto.setDeletions(deletions);
             dto.setTotalChanges(total);
-            
+
         } catch (Exception e) {
-            log.warn("Could not get detailed stats for commit {}, using fallback: {}", 
-                     ghCommit.getSHA1(), e.getMessage());
+            throw new RemoteException("Could not get detailed stats for commit " + ghCommit.getSHA1()+ ", using fallback: " + e.getMessage());
         }
-        
+
         dto.setUrl(ghCommit.getHtmlUrl().toString());
         return dto;
     }
-    
+
     private String[] extractOwnerAndRepo(String url) {
-        // Обрабатываем разные форматы URL
         url = url.replace("https://github.com/", "")
                 .replace("git@github.com:", "")
                 .replace(".git", "");
-        
+
         String[] parts = url.split("/");
         if (parts.length >= 2) {
             return new String[]{parts[0], parts[1]};
         }
         throw new IllegalArgumentException("Invalid GitHub URL format");
-    }
-    
-    public void saveGithubToken(Long userId, String accessToken, String githubUsername) {
-        GithubToken token = githubTokenRepository.findByUserId(userId)
-                .orElse(new GithubToken());
-        
-        token.setUserId(userId);
-        token.setAccessToken(accessToken);
-        token.setGithubUsername(githubUsername);
-        token.setUpdatedAt(LocalDateTime.now());
-        
-        githubTokenRepository.save(token);
-    }
-    
-    public String getGithubToken(Long userId) {
-        return githubTokenRepository.findByUserId(userId)
-                .map(GithubToken::getAccessToken)
-                .orElse(null);
-    }
-    
-    public boolean testGithubConnection(String accessToken) {
-        try {
-            GitHub github = new GitHubBuilder().withOAuthToken(accessToken).build();
-            github.checkApiUrlValidity();
-            return true;
-        } catch (IOException e) {
-            log.error("GitHub connection test failed: {}", e.getMessage());
-            return false;
-        }
     }
 }

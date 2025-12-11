@@ -1,19 +1,17 @@
 package com.gitperform.gitperformance.dto.project;
 
 import com.gitperform.gitperformance.model.Project;
-import lombok.*;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 public class ProjectDto {
     private Long id;
     private String name;
     private String description;
-    private String githubUrl;
+    private String repoUrl;
     private Long ownerId;
     private String ownerName;
     private LocalDateTime createdAt;
@@ -26,6 +24,7 @@ public class ProjectDto {
         this.ownerId = project.getOwner() != null ? project.getOwner().getId() : null;
         this.ownerName = project.getOwner() != null ? project.getOwner().getDisplayName() : null;
         this.createdAt = project.getCreatedAt();
+        this.repoUrl = project.getRepoUrl();
 
         if (project.getMembers() != null) {
             this.members = project.getMembers().stream()

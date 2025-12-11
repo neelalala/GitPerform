@@ -3,6 +3,7 @@ package com.gitperform.gitperformance.controller;
 import com.gitperform.gitperformance.dto.ApiResponse;
 import com.gitperform.gitperformance.dto.project.ProjectCreateDto;
 import com.gitperform.gitperformance.dto.project.ProjectDto;
+import com.gitperform.gitperformance.dto.project.ProjectSetRepoUrl;
 import com.gitperform.gitperformance.service.ProjectService;
 import com.gitperform.gitperformance.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -50,5 +51,24 @@ public class ProjectController {
         return new ApiResponse<>(success,
                 success ? "Joined project successfully" : "Failed to join project",
                 success);
+    }
+
+    @PostMapping("/{projectId}/connect")
+    public ApiResponse<Boolean> connectRepo(
+            @PathVariable Long projectId,
+            @RequestBody ProjectSetRepoUrl request) {
+
+        var project = projectService.getProject(projectId);
+        if (project == null) {
+            return new ApiResponse<>(false, "Project not found", false);
+        }
+
+        try {
+            project.setRepoUrl(request.getUrl());
+            projectService.save(project);
+            return new ApiResponse<>(true, "GitHub URL set successfully", true);
+        } catch (IllegalArgumentException e) {
+            return new ApiResponse<>(false, "Invalid GitHub URL: " + e.getMessage(), false);
+        }
     }
 }

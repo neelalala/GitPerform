@@ -1,11 +1,9 @@
 package com.gitperform.gitperformance.dto.project;
 
 import com.gitperform.gitperformance.model.ProjectMember;
-import lombok.*;
+import lombok.Data;
 
-@Getter
-@Setter
-@NoArgsConstructor
+@Data
 public class ProjectMemberDto {
     private Long id;
     private Long userId;

@@ -81,4 +81,8 @@ public class ProjectService {
         }
         return project.getMembers();
     }
+
+    public void save(Project project) {
+        projectRepository.save(project);
+    }
 }
