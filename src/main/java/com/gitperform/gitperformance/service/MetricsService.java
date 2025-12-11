@@ -142,7 +142,8 @@ public class MetricsService {
         dto.setSha(ghCommit.getSHA1());
         
         if (ghCommit.getAuthor() != null) {
-            dto.setAuthor(ghCommit.getAuthor().getName());
+            String name = ghCommit.getAuthor().getName() != null ? ghCommit.getAuthor().getName() : ghCommit.getAuthor().getLogin();
+            dto.setAuthor(name);
             dto.setAuthorEmail(ghCommit.getAuthor().getEmail());
         } else {
             dto.setAuthor("Unknown");
