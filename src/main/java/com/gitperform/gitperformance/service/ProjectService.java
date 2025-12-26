@@ -82,6 +82,10 @@ public class ProjectService {
         return project.getMembers();
     }
 
+    public ProjectMember getProjectMember(Long projectId, Long userId) {
+        return projectMemberRepository.findByProjectIdAndUserId(projectId, userId).orElse(null);
+    }
+
     public void save(Project project) {
         projectRepository.save(project);
     }
