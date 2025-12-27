@@ -2,6 +2,7 @@ package com.gitperform.gitperformance.dto.metrics;
 
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class CommitDto {
@@ -14,4 +15,6 @@ public class CommitDto {
     private int deletions;
     private int totalChanges;
     private String url;
+    private List<String> changedFiles;
+    private int filesChanged;
 }
